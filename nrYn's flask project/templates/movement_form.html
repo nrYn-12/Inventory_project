@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<h2>{{ title }}</h2>
+<form method="POST" novalidate>
+    {{ form.hidden_tag() }}
+
+    <div class="mb-3">
+        {{ form.timestamp.label(class="form-label") }}
+        {{ form.timestamp(class="form-control", placeholder="YYYY-MM-DD HH:MM:SS") }}
+        <div class="form-text">Leave blank for current time.</div>
+        {% for error in form.timestamp.errors %}
+            <small class="text-danger">{{ error }}</small>
+        {% endfor %}
+    </div>
+
+    <div class="mb-3">
+        {{ form.product_id.label(class="form-label") }}
+        {{ form.product_id(class="form-select") }}
+        {% for error in form.product_id.errors %}
+            <small class="text-danger">{{ error }}</small>
+        {% endfor %}
+    </div>
+
+    <div class="mb-3">
+        {{ form.from_location.label(class="form-label") }}
+        {{ form.from_location(class="form-select") }}
+        {% for error in form.from_location.errors %}
+            <small class="text-danger">{{ error }}</small>
+        {% endfor %}
+    </div>
+
+    <div class="mb-3">
+        {{ form.to_location.label(class="form-label") }}
+        {{ form.to_location(class="form-select") }}
+        {% for error in form.to_location.errors %}
+            <small class="text-danger">{{ error }}</small>
+        {% endfor %}
+    </div>
+
+    <div class="mb-3">
+        {{ form.qty.label(class="form-label") }}
+        {{ form.qty(class="form-control", min="1") }}
+        {% for error in form.qty.errors %}
+            <small class="text-danger">{{ error }}</small>
+        {% endfor %}
+    </div>
+
+    <button type="submit" class="btn btn-primary">{{ form.submit.label.text }}</button>
+    <a href="{{ url_for('movement_list') }}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}

@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}Product Movements{% endblock %}
+{% block content %}
+<h2>Product Movements</h2>
+<a href="{{ url_for('movement_add') }}" class="btn btn-success mb-3">Add Product Movement</a>
+<table class="table table-striped table-bordered align-middle">
+    <thead class="table-primary">
+        <tr>
+            <th>ID</th>
+            <th>Timestamp</th>
+            <th>Product</th>
+            <th>From Location</th>
+            <th>To Location</th>
+            <th>Quantity</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for movement in movements %}
+        <tr>
+            <td>{{ movement.movement_id }}</td>
+            <td>{{ movement.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+            <td>{{ movement.product_rel.name }}</td>
+            <td>{{ movement.from_location_rel.name if movement.from_location_rel else '-' }}</td>
+            <td>{{ movement.to_location_rel.name if movement.to_location_rel else '-' }}</td>
+            <td>{{ movement.qty }}</td>
+            <td>
+                <form action="{{ url_for('movement_delete', movement_id=movement.movement_id) }}" method="post" style="display:inline;" onsubmit="return confirm('Delete this movement?');">
+                    <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                </form>
+            </td>
+        </tr>
+    {% else %}
+        <tr><td colspan="7" class="text-center">No movements found.</td></tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

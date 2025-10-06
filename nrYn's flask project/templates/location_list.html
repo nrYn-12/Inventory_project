@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}Locations{% endblock %}
+{% block content %}
+<h2>Locations</h2>
+<a href="{{ url_for('location_add') }}" class="btn btn-success mb-3">Add New Location</a>
+<table class="table table-striped table-bordered align-middle">
+    <thead class="table-primary">
+        <tr>
+            <th>Location Code</th>
+            <th>Name</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for location in locations %}
+        <tr>
+            <td>{{ location.location_id }}</td>
+            <td>{{ location.name }}</td>
+            <td>
+                <a href="{{ url_for('location_edit', location_id=location.location_id) }}" class="btn btn-sm btn-primary">Edit</a>
+                <form action="{{ url_for('location_delete', location_id=location.location_id) }}" method="post" style="display:inline;" onsubmit="return confirm('Delete this location?');">
+                    <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                </form>
+            </td>
+        </tr>
+    {% else %}
+        <tr><td colspan="3" class="text-center">No locations found.</td></tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

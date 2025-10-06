@@ -1,0 +1,16 @@
+body {
+    padding-bottom: 40px;
+}
+
+table {
+    font-size: 0.9rem;
+}
+
+.navbar-brand {
+    font-weight: bold;
+    font-size: 1.5rem;
+}
+
+.btn {
+    min-width: 80px;
+}
