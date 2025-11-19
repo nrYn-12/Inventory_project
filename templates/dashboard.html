@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Inventory Dashboard</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="light">
+
+  <!-- FLOATING CENTER TOP CONTROLS -->
+  <div class="floating-top" role="toolbar" aria-label="Theme and download">
+    <button id="themeToggle" class="float-btn" title="Toggle theme">🌙</button>
+    <a id="downloadLink" class="float-btn" title="Download PDF">📄</a>
+  </div>
+
+  <main class="page">
+    <div class="container">
+
+      <!-- PRODUCTS -->
+      <section class="card">
+        <h2>Add Product</h2>
+        <form method="POST" action="/add_product">
+          <input name="product_id" placeholder="Product ID (e.g. P01)" required>
+          <input name="name" placeholder="Product name" required>
+          <button type="submit">Add Product</button>
+        </form>
+
+        <h3>Product List</h3>
+        <ul class="list">
+          {% for p in products %}
+          <li>
+            <span class="item-text">{{ p.product_id }} — {{ p.name }}</span>
+            <button class="tiny-btn edit-product"
+                    data-id="{{ p.id }}" data-code="{{ p.product_id }}" data-name="{{ p.name }}" title="Edit">✏️</button>
+            <a class="tiny-btn delete-btn" href="/delete_product/{{ p.id }}" title="Delete">🗑️</a>
+          </li>
+          {% else %}
+          <li class="muted">No products yet.</li>
+          {% endfor %}
+        </ul>
+      </section>
+
+      <!-- LOCATIONS -->
+      <section class="card">
+        <h2>Add Location</h2>
+        <form method="POST" action="/add_location">
+          <input name="location_id" placeholder="Location ID (e.g. L01)" required>
+          <input name="name" placeholder="Location name" required>
+          <button type="submit">Add Location</button>
+        </form>
+
+        <h3>Location List</h3>
+        <ul class="list">
+          {% for l in locations %}
+          <li>
+            <span class="item-text">{{ l.location_id }} — {{ l.name }}</span>
+            <button class="tiny-btn edit-location"
+                    data-id="{{ l.id }}" data-code="{{ l.location_id }}" data-name="{{ l.name }}" title="Edit">✏️</button>
+            <a class="tiny-btn delete-btn" href="/delete_location/{{ l.id }}" title="Delete">🗑️</a>
+          </li>
+          {% else %}
+          <li class="muted">No locations yet.</li>
+          {% endfor %}
+        </ul>
+      </section>
+
+      <!-- MOVEMENTS -->
+      <section class="card">
+        <h2>Record Movement</h2>
+        <form method="POST" action="/add_movement">
+          <select name="product_id" required>
+            <option disabled selected>Select product</option>
+            {% for p in products %}
+            <option value="{{ p.product_id }}">{{ p.product_id }} — {{ p.name }}</option>
+            {% endfor %}
+          </select>
+
+          <select name="from_location">
+            <option value="">None (New stock)</option>
+            {% for l in locations %}
+            <option value="{{ l.location_id }}">{{ l.location_id }} — {{ l.name }}</option>
+            {% endfor %}
+          </select>
+
+          <select name="to_location">
+            <option value="">None (Remove / Sold)</option>
+            {% for l in locations %}
+            <option value="{{ l.location_id }}">{{ l.location_id }} — {{ l.name }}</option>
+            {% endfor %}
+          </select>
+
+          <input name="qty" type="number" min="1" placeholder="Quantity" required>
+          <button type="submit">Save Movement</button>
+        </form>
+
+        <h3>Recent Movements</h3>
+        <ul class="list small-list">
+          {% for m in movements %}
+          <li>
+            {{ m.timestamp.strftime('%Y-%m-%d %H:%M') }} — {{ m.product_id }}
+            {% if m.from_location %} from {{ m.from_location }}{% endif %}
+            {% if m.to_location %} to {{ m.to_location }}{% endif %}
+            (qty: {{ m.qty }})
+            <a class="tiny-btn delete-btn" href="/delete_movement/{{ m.id }}" title="Delete">🗑️</a>
+          </li>
+          {% else %}
+          <li class="muted">No movements yet.</li>
+          {% endfor %}
+        </ul>
+      </section>
+
+    </div> <!-- .container -->
+
+    <hr>
+
+    <h2 class="section-title">📊 Inventory Report</h2>
+    <div class="report-container">
+      {% for p in products %}
+      <div class="report-card">
+        <h3>{{ p.product_id }} — {{ p.name }}</h3>
+        <ul>
+          {% for l in locations %}
+          <li><strong>{{ l.location_id }}</strong> {{ l.name }} — {{ stock.get(p.product_id, {}).get(l.location_id, 0) }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% else %}
+      <p class="muted">No products or locations to report.</p>
+      {% endfor %}
+    </div>
+  </main>
+
+  <!-- EDIT MODAL -->
+  <div id="editModal" class="modal" aria-hidden="true">
+    <div class="modal-content">
+      <h3 id="modalTitle">Edit item</h3>
+      <form id="editForm">
+        <input id="edit_kind" name="kind" type="hidden">
+        <input id="edit_id" name="id" type="hidden">
+        <input id="edit_code" name="code" placeholder="ID (e.g. P01 or L01)" required>
+        <input id="edit_name" name="name" placeholder="Name" required>
+        <div class="modal-actions">
+          <button type="submit" class="btn-primary">Save</button>
+          <button type="button" id="modalCancel" class="btn-ghost">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- SCRIPTS -->
+  <script>
+    // THEME TOGGLE (floating)
+    const body = document.body;
+    const themeToggle = document.getElementById('themeToggle');
+    const saved = localStorage.getItem('theme') || 'light';
+    body.className = saved;
+    themeToggle.textContent = saved === 'dark' ? '☀️' : '🌙';
+    themeToggle.addEventListener('click', () => {
+      const next = body.classList.contains('dark') ? 'light' : 'dark';
+      body.className = next;
+      localStorage.setItem('theme', next);
+      themeToggle.textContent = next === 'dark' ? '☀️' : '🌙';
+    });
+
+    // DOWNLOAD link fallback
+    const downloadLink = document.getElementById('downloadLink');
+    (async function choosePdf() {
+      const endpoints = ['/export_pdf', '/download_pdf'];
+      for (const ep of endpoints) {
+        try {
+          const r = await fetch(ep, { method: 'HEAD' });
+          if (r.ok) { downloadLink.href = ep; downloadLink.setAttribute('download',''); return; }
+        } catch (e) {
+          try {
+            const r2 = await fetch(ep, { method: 'GET' });
+            if (r2.ok) { downloadLink.href = ep; downloadLink.setAttribute('download',''); return; }
+          } catch (_) {}
+        }
+      }
+      downloadLink.style.display = 'none';
+    })();
+
+    // EDIT modal logic (delete + add update)
+    const modal = document.getElementById('editModal');
+    const editForm = document.getElementById('editForm');
+    const editKind = document.getElementById('edit_kind');
+    const editId = document.getElementById('edit_id');
+    const editCode = document.getElementById('edit_code');
+    const editName = document.getElementById('edit_name');
+    const modalCancel = document.getElementById('modalCancel');
+
+    function showEdit(kind, id, code, name) {
+      editKind.value = kind; editId.value = id; editCode.value = code; editName.value = name;
+      modal.style.display = 'flex';
+      modal.setAttribute('aria-hidden','false');
+      editCode.focus();
+    }
+    function hideEdit() {
+      modal.style.display = 'none';
+      modal.setAttribute('aria-hidden','true');
+    }
+
+    document.querySelectorAll('.edit-product').forEach(btn =>
+      btn.addEventListener('click', () => showEdit('product', btn.dataset.id, btn.dataset.code, btn.dataset.name))
+    );
+    document.querySelectorAll('.edit-location').forEach(btn =>
+      btn.addEventListener('click', () => showEdit('location', btn.dataset.id, btn.dataset.code, btn.dataset.name))
+    );
+
+    modalCancel.addEventListener('click', hideEdit);
+    window.addEventListener('click', (e) => { if (e.target === modal) hideEdit(); });
+
+    editForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const kind = editKind.value, id = editId.value;
+      const code = editCode.value.trim(), name = editName.value.trim();
+      if (!code || !name) return alert('Both ID and name are required.');
+
+      const deleteUrl = kind === 'product' ? `/delete_product/${id}` : `/delete_location/${id}`;
+      const addUrl = kind === 'product' ? '/add_product' : '/add_location';
+      try {
+        await fetch(deleteUrl, { method: 'GET' });
+        const fd = new FormData();
+        if (kind === 'product') fd.append('product_id', code); else fd.append('location_id', code);
+        fd.append('name', name);
+        await fetch(addUrl, { method: 'POST', body: fd });
+        window.location.reload();
+      } catch (err) {
+        console.error(err);
+        alert('Network error. Try again.');
+      }
+    });
+  </script>
+</body>
+</html>
