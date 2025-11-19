@@ -1,28 +1,37 @@
-from app import db, Product, Location, Movement, app
+# example_data.py — safe & simple sample data inserter
+# Usage: stop the server, then run `python example_data.py`
+
+from app import app, db, Product, Location, Movement
 from datetime import datetime
 
+def add_if_missing(model, **kwargs):
+    """Return existing row or create new one (no duplicates)."""
+    obj = model.query.filter_by(**{k: kwargs[k] for k in kwargs if k in model.__table__.columns}).first()
+    if obj:
+        return obj
+    obj = model(**kwargs)
+    db.session.add(obj)
+    return obj
+
 with app.app_context():
-    db.drop_all()
     db.create_all()
 
-    # Sample Products
-    p1 = Product(product_id="P01", name="Laptop")
-    p2 = Product(product_id="P02", name="Mobile")
-    p3 = Product(product_id="P03", name="Keyboard")
+    # products
+    add_if_missing(Product, product_id="P01", name="Laptop")
+    add_if_missing(Product, product_id="P02", name="Mobile")
+    add_if_missing(Product, product_id="P03", name="Keyboard")
 
-    # Sample Locations
-    l1 = Location(location_id="L01", name="Chennai Warehouse")
-    l2 = Location(location_id="L02", name="Bangalore Warehouse")
+    # locations
+    add_if_missing(Location, location_id="L01", name="Chennai Warehouse")
+    add_if_missing(Location, location_id="L02", name="Bangalore Warehouse")
 
-    db.session.add_all([p1, p2, p3, l1, l2])
+    # movements (we keep them simple; duplicates are allowed but harmless)
+    if not Movement.query.filter_by(product_id="P01", to_location="L01", qty=10).first():
+        db.session.add(Movement(product_id="P01", to_location="L01", qty=10, timestamp=datetime.utcnow()))
+    if not Movement.query.filter_by(product_id="P02", to_location="L02", qty=20).first():
+        db.session.add(Movement(product_id="P02", to_location="L02", qty=20, timestamp=datetime.utcnow()))
+    if not Movement.query.filter_by(product_id="P01", from_location="L01", to_location="L02", qty=3).first():
+        db.session.add(Movement(product_id="P01", from_location="L01", to_location="L02", qty=3, timestamp=datetime.utcnow()))
+
     db.session.commit()
-
-    # Sample Movements
-    m1 = Movement(product_id="P01", to_location="L01", qty=10)
-    m2 = Movement(product_id="P02", to_location="L02", qty=20)
-    m3 = Movement(product_id="P01", from_location="L01", to_location="L02", qty=3)
-
-    db.session.add_all([m1, m2, m3])
-    db.session.commit()
-
-    print("Sample data inserted!")
+    print("Sample data inserted (if missing).")

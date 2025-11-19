@@ -1,109 +1,123 @@
 :root{
-  --bg-light: #f7f9fc;
-  --card-light: hsl(0, 0%, 100%);
-  --text-light: #111827;
-  --bg-dark: #07122a;
-  --card-dark: #0f2540;
-  --text-dark: #e6eef8;
+  --bg: #f7f9fc;
+  --card: #ffffff;
+  --text: #111827;
   --accent: #2563eb;
   --muted: #6b7280;
 }
 
-/* Base body */
-body{ margin:12px; font-family:Arial,Helvetica,sans-serif; transition:background .15s,color .15s; }
-body.light{ background:var(--bg-light); color:var(--text-light); }
-body.dark{ background:var(--bg-dark); color:var(--text-dark); }
+/* ---------- Base layout ---------- */
+* { box-sizing: border-box; }
+body{
+  margin:12px;
+  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  transition: background .15s, color .15s;
+}
 
-/* ===== Floating centered top buttons =====
-   Positioned fixed at top-center, small pill container with two circular icons.
-*/
-.floating-top{
+/* Floating bottom-right (PDF button) */
+.floating-bottom-right{
   position: fixed;
-  top: 12px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: inline-flex;
-  gap: 8px;
+  right: 20px;
+  bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 9999;
   align-items: center;
-  background: rgba(255,255,255,0.95);
-  padding: 6px;
-  border-radius: 999px;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.12);
-  z-index:9999;
-  border: 1px solid rgba(0,0,0,0.04);
 }
-
-/* dark mode pill */
-body.dark .floating-top{ background: rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.04); }
-
-/* circular icon button */
 .float-btn{
-  width:40px; height:40px; display:inline-grid; place-items:center;
-  border-radius:50%; border:none; cursor:pointer; font-size:18px;
-  background:transparent; color:inherit;
+  width:40px;
+  height:40px;
+  display:inline-grid;
+  place-items:center;
+  border-radius:50%;
+  border:none;
+  cursor:pointer;
+  font-size:18px;
+  background: #111827;
+  color: #fff;
+  text-decoration: none;
+  box-shadow: 0 6px 18px rgba(17,24,39,0.15);
 }
-.float-btn:hover{ transform:translateY(-3px); background: rgba(0,0,0,0.04); }
+.float-btn:hover{ transform: translateY(-3px); opacity: 0.95; }
 
-/* ===== Page padding to avoid overlay ===== */
-.page{ padding-top:74px; } /* leave space for floating-top */
+/* Ensure bottom floating button doesn't cover page content */
+.page{ padding-bottom: 100px; }
 
-/* ===== Layout & Cards ===== */
+/* ---------- Main container & cards ---------- */
 .container{ display:flex; gap:16px; flex-wrap:wrap; align-items:flex-start; }
 
 .card{
-  background:var(--card-light); width:31%; min-width:260px; padding:16px; border-radius:12px;
-  box-shadow:0 2px 10px rgba(0,0,0,0.08); box-sizing:border-box;
+  background: var(--card);
+  width:31%;
+  min-width:260px;
+  padding:16px;
+  border-radius:12px;
+  box-shadow:0 2px 10px rgba(0,0,0,0.08);
 }
-body.dark .card{ background:var(--card-dark); box-shadow:none; color:var(--text-dark); }
 
-/* inputs */
+/* Inputs & buttons */
 input, select{
   width:100%; padding:10px; margin-top:10px; border-radius:8px; border:1px solid #d1d5db; font-size:14px;
-  box-sizing:border-box;
 }
-body.dark input, body.dark select{ background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06); color:var(--text-dark); }
-
-/* buttons */
-button{ width:100%; padding:10px; margin-top:12px; border-radius:8px; border:none; background:var(--accent); color:white; cursor:pointer; font-weight:600; }
+button{
+  width:100%; padding:10px; margin-top:12px; border-radius:8px; border:none; background:var(--accent); color:white; cursor:pointer; font-weight:600;
+}
 button:hover{ opacity:0.95; }
 
-/* lists */
+/* Lists */
 .list{ list-style:none; padding:0; margin-top:12px; }
 .list li{ display:flex; align-items:center; gap:10px; padding:6px 0; }
 .item-text{ flex:1; }
 
-/* tiny icon buttons */
+/* Tiny icon buttons */
 .tiny-btn{ background:transparent; border:none; cursor:pointer; font-size:18px; padding:4px 6px; border-radius:8px; }
 .tiny-btn:hover{ background:rgba(0,0,0,0.04); }
 
-/* edit (pencil) */
-.edit-product, .edit-location{ color:#1d4ed8; }
-.edit-product:hover, .edit-location:hover{ background:rgba(29,78,216,0.08); }
+/* Delete button style */
+.delete-btn{ color:#dc2626; }
 
-/* delete (trash) */
-.delete-btn{ color:#dc2626; font-size:20px; text-decoration:none; }
-.delete-btn:hover{ background:rgba(220,38,38,0.06); }
+/* ---------- Inventory Report: HORIZONTAL layout (responsive grid) ---------- */
+.report-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  margin-top: 10px;
+  align-items: start;
+}
 
-/* report area */
-.section-title{ margin-top:18px; font-size:18px; }
-.report-container{ display:flex; gap:12px; flex-wrap:wrap; margin-top:10px; }
-.report-card{ background:var(--card-light); padding:12px; border-radius:10px; min-width:220px; box-shadow:0 1px 6px rgba(0,0,0,0.06); }
-body.dark .report-card{ background:var(--card-dark); }
+.report-card{
+  background: var(--card);
+  padding: 14px;
+  border-radius: 10px;
+  min-width: 0; /* important for grid children */
+  box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+}
 
-/* modal */
-.modal{ display:none; position:fixed; inset:0; background:rgba(0,0,0,0.35); align-items:center; justify-content:center; z-index:9998; }
-.modal-content{ width:92%; max-width:420px; padding:18px; border-radius:12px; background:var(--card-light); box-shadow:0 8px 30px rgba(0,0,0,0.25); }
-body.dark .modal-content{ background:var(--card-dark); color:var(--text-dark); }
+/* Smaller text and spacing inside report */
+.report-card h3{ margin:0 0 8px 0; font-size:16px; }
+.report-card ul { margin:0; padding-left:18px; }
+.report-card li { margin:6px 0; }
+
+/* ---------- Modal ---------- */
+.modal{
+  display:none; position:fixed; inset:0; background:rgba(0,0,0,0.35); align-items:center; justify-content:center; z-index:9998;
+}
+.modal-content{
+  width:92%; max-width:420px; padding:18px; border-radius:12px; background: var(--card); box-shadow:0 8px 30px rgba(0,0,0,0.25);
+}
 .modal-actions{ display:flex; gap:10px; margin-top:12px; }
 .btn-ghost{ width:100%; padding:10px; border-radius:8px; background:transparent; border:1px solid #cbd5e1; cursor:pointer; }
-.btn-ghost:hover{ opacity:0.95; }
-
-/* muted text */
 .muted{ color:var(--muted); }
 
-/* responsive */
+/* ---------- Responsive adjustments ---------- */
 @media (max-width:900px){
   .card{ width:100%; }
-  .floating-top{ left:50%; transform:translateX(-50%); top:8px; }
-  .page{ padding-top:92px; }
+  .page{ padding-bottom:130px; }
+}
+@media (max-width:420px){
+  .float-btn{ width:44px; height:44px; font-size:18px; }
+  .floating-bottom-right{ right:12px; bottom:12px; gap:8px; }
 }
